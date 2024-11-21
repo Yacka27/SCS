@@ -1,37 +1,73 @@
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        // Crear productos
-        Producto p1 = new Producto("Arroz", 5.0, 1000);
-        Producto p2 = new Producto("Leche", 3.0, 1200);
-        Producto p3 = new Producto("Huevos", 2.5, 800);
+        Scanner scanner = new Scanner(System.in);
 
-        // Crear clientes con sus productos
-        Cliente cliente1 = new Cliente("Cliente 1", Arrays.asList(p1, p2, p3));
-        Cliente cliente2 = new Cliente("Cliente 2", Arrays.asList(p1, p3));
-        Cliente cliente3 = new Cliente("Cliente 3", Arrays.asList(p2, p3));
+        // Lista de clientes y cajeras
+        List<Cliente> clientes = new ArrayList<>();
+        List<Cajera> cajeras = new ArrayList<>();
 
-        // Crear cajeras
-        Cajera cajera1 = new Cajera("Cajera 1", cliente1);
-        Cajera cajera2 = new Cajera("Cajera 2", cliente2);
-        Cajera cajera3 = new Cajera("Cajera 3", cliente3);
+        System.out.println("Bienvenido al simulador de cobro en el supermercado.");
+        
+        // Solicitar el número de clientes
+        System.out.print("Ingrese el número de clientes: ");
+        int numeroClientes = scanner.nextInt();
+        scanner.nextLine(); // Consumir salto de línea
 
-        // Iniciar procesos concurrentes
-        cajera1.start();
-        cajera2.start();
-        cajera3.start();
+        // Ingresar datos de cada cliente
+        for (int i = 0; i < numeroClientes; i++) {
+            System.out.print("Ingrese el nombre del cliente " + (i + 1) + ": ");
+            String nombreCliente = scanner.nextLine();
 
-        // Esperar a que terminen todas las cajeras
-        try {
-            cajera1.join();
-            cajera2.join();
-            cajera3.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            System.out.print("Ingrese el número de productos para " + nombreCliente + ": ");
+            int numeroProductos = scanner.nextInt();
+            scanner.nextLine(); // Consumir salto de línea
+
+            List<Producto> productos = new ArrayList<>();
+            for (int j = 0; j < numeroProductos; j++) {
+                System.out.print("Ingrese el nombre del producto " + (j + 1) + ": ");
+                String nombreProducto = scanner.nextLine();
+
+                System.out.print("Ingrese el precio del producto " + nombreProducto + ": ");
+                double precioProducto = scanner.nextDouble();
+
+                System.out.print("Ingrese el tiempo de procesamiento (en ms) para " + nombreProducto + ": ");
+                int tiempoProcesamiento = scanner.nextInt();
+                scanner.nextLine(); // Consumir salto de línea
+
+                productos.add(new Producto(nombreProducto, precioProducto, tiempoProcesamiento));
+            }
+
+            clientes.add(new Cliente(nombreCliente, productos));
         }
 
-        System.out.println("Proceso de cobro completado.");
+        // Crear cajeras y asignar clientes
+        for (int i = 0; i < clientes.size(); i++) {
+            Cajera cajera = new Cajera("Cajera " + (i + 1), clientes.get(i));
+            cajeras.add(cajera);
+        }
+
+        // Iniciar el proceso de cobro
+        System.out.println("\nIniciando el proceso de cobro...\n");
+        for (Cajera cajera : cajeras) {
+            cajera.start();
+        }
+
+        // Esperar a que todas las cajeras terminen
+        for (Cajera cajera : cajeras) {
+            try {
+                cajera.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        System.out.println("\nProceso de cobro completado.");
+        scanner.close();
     }
 }
+
 
